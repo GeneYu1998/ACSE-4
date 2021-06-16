@@ -1,0 +1,1219 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Project 1: Armageddon - The hazard of small asteroids &#8212; Armageddon  documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="project-1-armageddon-the-hazard-of-small-asteroids">
+<h1>Project 1: Armageddon - The hazard of small asteroids<a class="headerlink" href="#project-1-armageddon-the-hazard-of-small-asteroids" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="synopsis">
+<h2>Synopsis:<a class="headerlink" href="#synopsis" title="Permalink to this headline">¶</a></h2>
+<p>Asteroids entering Earth’s atmosphere are subject to extreme drag forces
+that decelerate, heat and disrupt the space rocks. The fate of an
+asteroid is a complex function of its initial mass, speed, trajectory
+angle and internal strength.</p>
+<p><a class="reference external" href="https://en.wikipedia.org/wiki/Asteroid">Asteroids</a> 10-100 m in
+diameter can penetrate deep into Earth’s atmosphere and disrupt
+catastrophically, generating an atmospheric disturbance
+(<a class="reference external" href="https://en.wikipedia.org/wiki/Air_burst">airburst</a>) that can cause
+<a class="reference external" href="https://www.youtube.com/watch?v=tq02C_3FvFo">damage on the ground</a>.
+Such an event occurred over the city of
+<a class="reference external" href="https://en.wikipedia.org/wiki/Chelyabinsk_meteor">Chelyabinsk</a> in
+Russia, in 2013, releasing energy equivalent to about 520 <a class="reference external" href="https://en.wikipedia.org/wiki/TNT_equivalent">kilotons of
+TNT</a> (1 kt TNT is
+equivalent to <span class="math notranslate nohighlight">\(4.184 \times 10^{12}\)</span> J), and injuring thousands of
+people (<a class="reference external" href="http://doi.org/10.1126/science.1242642">Popova et al.,
+2013</a>; <a class="reference external" href="http://doi.org/10.1038/nature12741">Brown et al.,
+2013</a>). An even larger event
+occurred over
+<a class="reference external" href="https://en.wikipedia.org/wiki/Tunguska_event">Tunguska</a>, a
+relatively unpopulated area in Siberia, in 1908.</p>
+<p>This simulator predicts the fate of asteroids entering Earth’s atmosphere,
+and provides a hazard mapper for an impact over the UK.</p>
+</div>
+<div class="section" id="problem-definition">
+<h2>Problem definition<a class="headerlink" href="#problem-definition" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="equations-of-motion-for-a-rigid-asteroid">
+<h3>Equations of motion for a rigid asteroid<a class="headerlink" href="#equations-of-motion-for-a-rigid-asteroid" title="Permalink to this headline">¶</a></h3>
+<p>The dynamics of an asteroid in Earth’s atmosphere prior to break-up is
+governed by a coupled set of ordinary differential equations:</p>
+<div class="math notranslate nohighlight">
+\begin{aligned}
+\frac{dv}{dt} &amp; = \frac{-C_D\rho_a A v^2}{2 m} + g \sin \theta \\
+\frac{dm}{dt} &amp; = \frac{-C_H\rho_a A v^3}{2 Q} \\
+\frac{d\theta}{dt} &amp; = \frac{g\cos\theta}{v} - \frac{C_L\rho_a A v}{2 m} - \frac{v\cos\theta}{R_P + z} \\
+\frac{dz}{dt} &amp; = -v\sin\theta \\
+\frac{dx}{dt} &amp; = \frac{v\cos\theta}{1 + z/R_P}
+\end{aligned}</div><p>In these equations, <span class="math notranslate nohighlight">\(v\)</span>, <span class="math notranslate nohighlight">\(m\)</span>, and <span class="math notranslate nohighlight">\(A\)</span> are the asteroid
+speed (along trajectory), mass and cross-sectional area, respectively.
+We will assume an initially <strong>spherical asteroid</strong> to convert from
+inital radius to mass (and cross-sectional area). <span class="math notranslate nohighlight">\(\theta\)</span> is the
+meteoroid trajectory angle to the horizontal (in radians), <span class="math notranslate nohighlight">\(x\)</span> is
+the downrange distance of the meteoroid from its entry position,
+<span class="math notranslate nohighlight">\(z\)</span> is the altitude and <span class="math notranslate nohighlight">\(t\)</span> is time; <span class="math notranslate nohighlight">\(C_D\)</span> is the drag
+coefficient, <span class="math notranslate nohighlight">\(\rho_a\)</span> is the atmospheric density (a function of
+altitude ), <span class="math notranslate nohighlight">\(C_H\)</span> is an ablation efficiency coefficient, <span class="math notranslate nohighlight">\(Q\)</span>
+is the specific heat of ablation; <span class="math notranslate nohighlight">\(C_L\)</span> is a lift coefficient; and
+<span class="math notranslate nohighlight">\(R_P\)</span> is the planetary radius. All terms use MKS units.</p>
+</div>
+<div class="section" id="asteroid-break-up-and-deformation">
+<h3>Asteroid break-up and deformation<a class="headerlink" href="#asteroid-break-up-and-deformation" title="Permalink to this headline">¶</a></h3>
+<p>A commonly used criterion for the break-up of an asteroid in the
+atmosphere is when the ram pressure of the air interacting with the
+asteroid <span class="math notranslate nohighlight">\(\rho_a v^2\)</span> first exceeds the strength of the asteroid
+<span class="math notranslate nohighlight">\(Y\)</span>.</p>
+<div class="math notranslate nohighlight">
+\[\rho_a v^2 = Y\]</div>
+<p>Should break-up occur, the asteroid deforms and spreads laterally as it
+continues its passage through the atmosphere. Several models for the
+spreading rate have been proposed. In the simplest model, the fragmented
+asteroid’s spreading rate is related to its along trajectory speed
+<a class="reference external" href="http://doi.org/10.1086/116499">(Hills and Goda, 1993)</a>:</p>
+<div class="math notranslate nohighlight">
+\[\frac{dr}{dt} = \left[\frac{7}{2}\alpha\frac{\rho_a}{\rho_m}\right]^{1/2} v\]</div>
+<p>Where <span class="math notranslate nohighlight">\(r\)</span> is the asteroid radius, <span class="math notranslate nohighlight">\(\rho_m\)</span> is the asteroid
+density (assumed constant) and <span class="math notranslate nohighlight">\(\alpha\)</span> is a spreading
+coefficient, often taken to be 0.3. It is conventional to define the
+cross-sectional area of the expanding cloud of fragments as
+<span class="math notranslate nohighlight">\(A = \pi r^2\)</span> (i.e., assuming a circular cross-section), for use
+in the above equations. Fragmentation and spreading <strong>ceases</strong> when the
+ram pressure drops back below the strength of the meteoroid
+<span class="math notranslate nohighlight">\(\rho_a v^2 &lt; Y\)</span>.</p>
+</div>
+<div class="section" id="airblast-damage">
+<h3>Airblast damage<a class="headerlink" href="#airblast-damage" title="Permalink to this headline">¶</a></h3>
+<p>The rapid deposition of energy in the atmosphere is analogous to an
+explosion and so the environmental consequences of the airburst can be
+estimated using empirical data from atmospheric explosion experiments
+<a class="reference external" href="https://www.dtra.mil/Portals/61/Documents/NTPR/4-Rad_Exp_Rpts/36_The_Effects_of_Nuclear_Weapons.pdf">(Glasstone and Dolan,
+1977)</a>.</p>
+<p>The main cause of damage close to the impact site is a strong (pressure)
+blastwave in the air, known as the <strong>airblast</strong>. Empirical data suggest
+that the pressure in this wave <span class="math notranslate nohighlight">\(p\)</span> (in Pa) (above ambient, also
+known as overpressure), as a function of explosion energy <span class="math notranslate nohighlight">\(E_k\)</span>
+(in kilotons of TNT equivalent), burst altitude <span class="math notranslate nohighlight">\(z_b\)</span> (in m) and
+horizontal range <span class="math notranslate nohighlight">\(r\)</span> (in m), is given by:</p>
+<div class="math notranslate nohighlight">
+\begin{equation*}
+   p(r) = 3.14 \times 10^{11} \left(\frac{r^2 + z_b^2}{E_k^{2/3}}\right)^{-1.3} + 1.8 \times 10^{7} \left(\frac{r^2 + z_b^2}{E_k^{2/3}}\right)^{-0.565}
+\end{equation*}</div><p>For airbursts, we will take the total kinetic energy lost by the
+asteroid at the burst altitude as the burst energy <span class="math notranslate nohighlight">\(E_k\)</span>. For
+low-altitude airbursts or cratering events, we will define <span class="math notranslate nohighlight">\(E_k\)</span>
+as the <strong>larger</strong> of the total kinetic energy lost by the asteroid at
+the burst altitude or the residual kinetic energy of the asteroid when
+it hits the ground.</p>
+<p>The following threshold pressures can then be used to define different
+degrees of damage.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 21%" />
+<col style="width: 55%" />
+<col style="width: 24%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Damage Level</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Pressure (kPa)</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>1</p></td>
+<td><p>~10% glass windows shatter</p></td>
+<td><p>1.0</p></td>
+</tr>
+<tr class="row-odd"><td><p>2</p></td>
+<td><p>~90% glass windows shatter</p></td>
+<td><p>3.5</p></td>
+</tr>
+<tr class="row-even"><td><p>3</p></td>
+<td><p>Wood frame buildings collapse</p></td>
+<td><p>27</p></td>
+</tr>
+<tr class="row-odd"><td><p>4</p></td>
+<td><p>Multistory brick buildings collapse</p></td>
+<td><p>43</p></td>
+</tr>
+</tbody>
+</table>
+<p>Table 1: Pressure thresholds (in kPa) for airblast damage</p>
+</div>
+<div class="section" id="additional-sections">
+<h3>Additional sections<a class="headerlink" href="#additional-sections" title="Permalink to this headline">¶</a></h3>
+<p>You should expand this documentation to include explanatory text for all components of your tool.</p>
+</div>
+</div>
+</div>
+<div class="section" id="module-armageddon">
+<span id="function-api"></span><h1>Function API<a class="headerlink" href="#module-armageddon" title="Permalink to this headline">¶</a></h1>
+<p>Python asteroid airburst calculator</p>
+<dl class="py class">
+<dt id="armageddon.Planet">
+<em class="property">class </em><code class="sig-prename descclassname">armageddon.</code><code class="sig-name descname">Planet</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">atmos_func</span><span class="o">=</span><span class="default_value">'exponential'</span></em>, <em class="sig-param"><span class="n">atmos_filename</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">Cd</span><span class="o">=</span><span class="default_value">1.0</span></em>, <em class="sig-param"><span class="n">Ch</span><span class="o">=</span><span class="default_value">0.1</span></em>, <em class="sig-param"><span class="n">Q</span><span class="o">=</span><span class="default_value">10000000.0</span></em>, <em class="sig-param"><span class="n">Cl</span><span class="o">=</span><span class="default_value">0.001</span></em>, <em class="sig-param"><span class="n">alpha</span><span class="o">=</span><span class="default_value">0.3</span></em>, <em class="sig-param"><span class="n">Rp</span><span class="o">=</span><span class="default_value">6371000.0</span></em>, <em class="sig-param"><span class="n">g</span><span class="o">=</span><span class="default_value">9.81</span></em>, <em class="sig-param"><span class="n">H</span><span class="o">=</span><span class="default_value">8000.0</span></em>, <em class="sig-param"><span class="n">rho0</span><span class="o">=</span><span class="default_value">1.2</span></em><span class="sig-paren">)</span><a class="headerlink" href="#armageddon.Planet" title="Permalink to this definition">¶</a></dt>
+<dd><p>The class called Planet is initialised with constants appropriate
+for the given target planet, including the atmospheric density profile
+and other constants</p>
+<p>Set up the initial parameters and constants for the target planet</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>atmos_func</strong> (<em>string</em><em>, </em><em>optional</em>) – Function which computes atmospheric density, rho, at altitude, z.
+Default is the exponential function rho = rho0 exp(-z/H).
+Options are ‘exponential’, ‘tabular’ and ‘constant’</p></li>
+<li><p><strong>atmos_filename</strong> (<em>string</em><em>, </em><em>optional</em>) – Name of the filename to use with the tabular atmos_func option</p></li>
+<li><p><strong>Cd</strong> (<em>float</em><em>, </em><em>optional</em>) – The drag coefficient</p></li>
+<li><p><strong>Ch</strong> (<em>float</em><em>, </em><em>optional</em>) – The heat transfer coefficient</p></li>
+<li><p><strong>Q</strong> (<em>float</em><em>, </em><em>optional</em>) – The heat of ablation (J/kg)</p></li>
+<li><p><strong>Cl</strong> (<em>float</em><em>, </em><em>optional</em>) – Lift coefficient</p></li>
+<li><p><strong>alpha</strong> (<em>float</em><em>, </em><em>optional</em>) – Dispersion coefficient</p></li>
+<li><p><strong>Rp</strong> (<em>float</em><em>, </em><em>optional</em>) – Planet radius (m)</p></li>
+<li><p><strong>rho0</strong> (<em>float</em><em>, </em><em>optional</em>) – Air density at zero altitude (kg/m^3)</p></li>
+<li><p><strong>g</strong> (<em>float</em><em>, </em><em>optional</em>) – Surface gravity (m/s^2)</p></li>
+<li><p><strong>H</strong> (<em>float</em><em>, </em><em>optional</em>) – Atmospheric scale height (m)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="armageddon.Planet.RK4">
+<code class="sig-name descname">RK4</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">f</span></em>, <em class="sig-param"><span class="n">y0</span></em>, <em class="sig-param"><span class="n">t0</span></em>, <em class="sig-param"><span class="n">t_max</span></em>, <em class="sig-param"><span class="n">dt</span></em>, <em class="sig-param"><span class="n">strength</span></em>, <em class="sig-param"><span class="n">density</span></em><span class="sig-paren">)</span><a class="headerlink" href="#armageddon.Planet.RK4" title="Permalink to this definition">¶</a></dt>
+<dd><p>Solves ODE using explicit 4-stage, 4th order Runge-Kutta method</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>f</strong> (<em>function</em>) – Returns derivative</p></li>
+<li><p><strong>y0</strong> (<em>np.array</em>) – ‘1 x j’ array
+Initial vector of j parameters. In this script j=6, namely
+velocity, mass, angle, altitude, distance, and radius</p></li>
+<li><p><strong>t0</strong> (<em>float</em>) – Initial time for time-stepping</p></li>
+<li><p><strong>t_max</strong> (<em>float</em>) – Final time for time-stepping</p></li>
+<li><p><strong>dt</strong> (<em>float</em>) – Time interval for time-stepping</p></li>
+<li><p><strong>strength</strong> (<em>float</em>) – The strength of the asteroid</p></li>
+<li><p><strong>density</strong> (<em>float</em>) – The density of the asteroid</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>y</strong> (<em>np.array</em>) – ‘n x j’ array of solution over full time frame</p></li>
+<li><p><strong>t</strong> (<em>np.array</em>) – ‘1 x n’ array of times matching array y, up to t_max</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="armageddon.Planet.RK45">
+<code class="sig-name descname">RK45</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">f</span></em>, <em class="sig-param"><span class="n">y0</span></em>, <em class="sig-param"><span class="n">t0</span></em>, <em class="sig-param"><span class="n">t_max</span></em>, <em class="sig-param"><span class="n">dt</span></em>, <em class="sig-param"><span class="n">strength</span></em>, <em class="sig-param"><span class="n">density</span></em>, <em class="sig-param"><span class="n">tol</span><span class="o">=</span><span class="default_value">1e-07</span></em>, <em class="sig-param"><span class="n">error_out</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#armageddon.Planet.RK45" title="Permalink to this definition">¶</a></dt>
+<dd><p>Solves ODE using explicit 7-stage, 5th order Runge-Kutta method,
+aka Dormand-Prince method, with adaptive time-stepping
+:param f: Returns derivative
+:type f: function
+:param y0: ‘1 x 6’ array</p>
+<blockquote>
+<div><p>Initial vector of velocity, mass, angle, altitude, distance, and
+radius</p>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>t0</strong> (<em>float</em>) – Initial time for time-stepping</p></li>
+<li><p><strong>t_max</strong> (<em>float</em>) – Final time for time-stepping</p></li>
+<li><p><strong>dt</strong> (<em>float</em>) – Time interval for time-stepping</p></li>
+<li><p><strong>strength</strong> (<em>float</em>) – The strength of the asteroid</p></li>
+<li><p><strong>density</strong> (<em>float</em>) – The density of the asteroid</p></li>
+<li><p><strong>tol</strong> (<em>float</em><em>, </em><em>optional</em>) – Tolerance for error of solution</p></li>
+<li><p><strong>error_out</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether error wants to be part of the output</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>y_out</strong> (<em>np.array</em>) – ‘n x 6’ array of velocities, masses, angles, altitudes, distances,
+and radii over full time frame</p></li>
+<li><p><strong>t_out</strong> (<em>float</em>) – ‘1 x n’ array of times through time-stepping, up to t_max</p></li>
+<li><p><strong>e_out</strong> (<em>array, conditional</em>) – ‘1 x n’ array of corresponding errors. Only part of output
+if error_out is True</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="armageddon.Planet.analyse_outcome">
+<code class="sig-name descname">analyse_outcome</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">result</span></em><span class="sig-paren">)</span><a class="headerlink" href="#armageddon.Planet.analyse_outcome" title="Permalink to this definition">¶</a></dt>
+<dd><p>Inspect a pre-found solution to calculate the impact and airburst stats</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>result</strong> (<em>DataFrame</em>) – pandas dataframe with velocity, mass, angle, altitude, horizontal
+distance, radius and dedz as a function of time</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><p><strong>outcome</strong> – dictionary with details of the impact event, which should contain
+the key <code class="docutils literal notranslate"><span class="pre">outcome</span></code> (which should contain one of the following</p>
+<blockquote>
+<div><p>strings:</p>
+</div></blockquote>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">Airburst</span></code>, <code class="docutils literal notranslate"><span class="pre">Cratering</span></code> or <code class="docutils literal notranslate"><span class="pre">Airburst</span> <span class="pre">and</span> <span class="pre">cratering</span></code>),</dt><dd><p>as well as the following keys:</p>
+</dd>
+</dl>
+<p><code class="docutils literal notranslate"><span class="pre">burst_peak_dedz</span></code>, <code class="docutils literal notranslate"><span class="pre">burst_altitude</span></code>, <code class="docutils literal notranslate"><span class="pre">burst_distance</span></code>,
+<code class="docutils literal notranslate"><span class="pre">burst_energy</span></code></p>
+</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="armageddon.Planet.calculate_energy">
+<code class="sig-name descname">calculate_energy</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">result</span></em><span class="sig-paren">)</span><a class="headerlink" href="#armageddon.Planet.calculate_energy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to calculate the kinetic energy lost per unit altitude in
+kilotons TNT per km, for a given solution.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>result</strong> (<em>DataFrame</em>) – A pandas dataframe with columns for the velocity, mass, angle,
+altitude, horizontal distance and radius as a function of time</p></li>
+<li><p><strong>Returns</strong> (<em>DataFrame</em>) – Returns the dataframe with additional column <code class="docutils literal notranslate"><span class="pre">dedz</span></code> which is the
+kinetic energy lost per unit altitude</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>result</strong></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="armageddon.Planet.determine_parameters">
+<code class="sig-name descname">determine_parameters</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">rho0</span><span class="o">=</span><span class="default_value">3300</span></em>, <em class="sig-param"><span class="n">theta0</span><span class="o">=</span><span class="default_value">18.3</span></em>, <em class="sig-param"><span class="n">v0</span><span class="o">=</span><span class="default_value">19200.0</span></em>, <em class="sig-param"><span class="n">radians</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#armageddon.Planet.determine_parameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine the strength (Y) and radius (r), given initial data rho0, theta0, v0,
+and observed energy deposition curve.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>rho0</strong> (<em>float</em><em>, </em><em>optional</em>) – The density.</p></li>
+<li><p><strong>theta0</strong> (<em>float</em><em>, </em><em>optional</em>) – The impact angle.</p></li>
+<li><p><strong>v0</strong> (<em>float</em><em>, </em><em>optional</em><em>,</em>) – The entry velocity</p></li>
+<li><p><strong>radians</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether theta0 is in radians or not</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>Y</strong> (<em>float</em>) – Predicted strength</p></li>
+<li><p><strong>r</strong> (<em>float</em>) – Predicted radius</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="armageddon.Planet.error_convergence">
+<code class="sig-name descname">error_convergence</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">radius</span></em>, <em class="sig-param"><span class="n">velocity</span></em>, <em class="sig-param"><span class="n">density</span></em>, <em class="sig-param"><span class="n">strength</span></em>, <em class="sig-param"><span class="n">angle</span></em>, <em class="sig-param"><span class="n">tol_list</span></em>, <em class="sig-param"><span class="n">init_altitude</span><span class="o">=</span><span class="default_value">100000.0</span></em>, <em class="sig-param"><span class="n">dt</span><span class="o">=</span><span class="default_value">0.05</span></em>, <em class="sig-param"><span class="n">radians</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#armageddon.Planet.error_convergence" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates errors depending on the tolerance limit</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>tol_list</strong> (<em>array</em>) – ‘1 x n’ array of n tolerances to test for solver</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>err_list</strong> – ‘1 x n’ array of n errors corresponding to n tolerances</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="armageddon.Planet.f">
+<code class="sig-name descname">f</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">t</span></em>, <em class="sig-param"><span class="n">y</span></em>, <em class="sig-param"><span class="n">strength</span></em>, <em class="sig-param"><span class="n">density</span></em><span class="sig-paren">)</span><a class="headerlink" href="#armageddon.Planet.f" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates derivative of input vector y, as given in equations of
+motion found in AirburstSolver.ipynb</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>t</strong> (<em>float</em>) – Current time</p></li>
+<li><p><strong>y</strong> (<em>np.array</em>) – ‘1 x 6’ array containing current velocity, mass, angle, altitude,
+distance, and radius</p></li>
+<li><p><strong>strength</strong> (<em>float</em>) – Strength of the asteroid</p></li>
+<li><p><strong>density</strong> (<em>float</em>) – Density of the asteroid</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>out</strong> – ‘1 x 6’ array of current derivatives of velocity, mass, angle,
+altitude, distance, and radius</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>np.array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="armageddon.Planet.solve_atmospheric_entry">
+<code class="sig-name descname">solve_atmospheric_entry</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">radius</span></em>, <em class="sig-param"><span class="n">velocity</span></em>, <em class="sig-param"><span class="n">density</span></em>, <em class="sig-param"><span class="n">strength</span></em>, <em class="sig-param"><span class="n">angle</span></em>, <em class="sig-param"><span class="n">init_altitude</span><span class="o">=</span><span class="default_value">100000.0</span></em>, <em class="sig-param"><span class="n">dt</span><span class="o">=</span><span class="default_value">0.05</span></em>, <em class="sig-param"><span class="n">radians</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#armageddon.Planet.solve_atmospheric_entry" title="Permalink to this definition">¶</a></dt>
+<dd><p>Solve the system of differential equations for a given impact scenario</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>radius</strong> (<em>float</em>) – The radius of the asteroid in meters</p></li>
+<li><p><strong>velocity</strong> (<em>float</em>) – The entery speed of the asteroid in meters/second</p></li>
+<li><p><strong>density</strong> (<em>float</em>) – The density of the asteroid in kg/m^3</p></li>
+<li><p><strong>strength</strong> (<em>float</em>) – The strength of the asteroid (i.e. the maximum pressure it can
+take before fragmenting) in N/m^2</p></li>
+<li><p><strong>angle</strong> (<em>float</em>) – The initial trajectory angle of the asteroid to the horizontal
+By default, input is in degrees. If ‘radians’ is set to True, the
+input should be in radians</p></li>
+<li><p><strong>init_altitude</strong> (<em>float</em><em>, </em><em>optional</em>) – Initial altitude in m</p></li>
+<li><p><strong>dt</strong> (<em>float</em><em>, </em><em>optional</em>) – The output timestep, in s</p></li>
+<li><p><strong>radians</strong> (<em>logical</em><em>, </em><em>optional</em>) – Whether angles should be given in degrees or radians. Default=False
+Angles returned in the dataframe will have the same units as the
+input</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>Result</strong> – A pandas dataframe containing the solution to the system.
+Includes the following columns:
+‘velocity’, ‘mass’, ‘angle’, ‘altitude’,
+‘distance’, ‘radius’, ‘time’</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="armageddon.PostcodeLocator">
+<em class="property">class </em><code class="sig-prename descclassname">armageddon.</code><code class="sig-name descname">PostcodeLocator</code><span class="sig-paren">(</span><em class="sig-param">postcode_file='./resources/full_postcodes.csv'</em>, <em class="sig-param">census_file='./resources/population_by_postcode_sector.csv'</em>, <em class="sig-param">norm=&lt;function great_circle_distance&gt;</em><span class="sig-paren">)</span><a class="headerlink" href="#armageddon.PostcodeLocator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class to interact with a postcode database file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>postcode_file</strong> (<em>str</em><em>, </em><em>optional</em>) – Filename of a .csv file containing geographic
+location data for postcodes.</p></li>
+<li><p><strong>census_file</strong> (<em>str</em><em>, </em><em>optional</em>) – Filename of a .csv file containing census data by postcode sector.</p></li>
+<li><p><strong>norm</strong> (<em>function</em>) – Python function defining the distance between points in latitude-longitude space.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="armageddon.PostcodeLocator.get_population_of_postcode">
+<code class="sig-name descname">get_population_of_postcode</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">postcodes</span></em>, <em class="sig-param"><span class="n">sector</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#armageddon.PostcodeLocator.get_population_of_postcode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return populations of a list of postcode units or sectors.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>postcodes</strong> (<em>list of lists</em>) – list of postcode units or postcode sectors</p></li>
+<li><p><strong>sector</strong> (<em>bool</em><em>, </em><em>optional</em>) – if true return populations for postcode sectors, otherwise postcode units</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Contains the populations of input postcode units or sectors</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list of lists</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">locator</span> <span class="o">=</span> <span class="n">PostcodeLocator</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">locator</span><span class="o">.</span><span class="n">get_population_of_postcode</span><span class="p">([[</span><span class="s1">&#39;SW7 2AZ&#39;</span><span class="p">,</span><span class="s1">&#39;SW7 2BT&#39;</span><span class="p">,</span><span class="s1">&#39;SW7 2BU&#39;</span><span class="p">,</span><span class="s1">&#39;SW7 2DD&#39;</span><span class="p">]])</span>
+<span class="go">[[18.71311475409836, 18.71311475409836, 18.71311475409836, 18.71311475409836]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">locator</span><span class="o">.</span><span class="n">get_population_of_postcode</span><span class="p">([[</span><span class="s1">&#39;SW7  2&#39;</span><span class="p">]],</span> <span class="kc">True</span><span class="p">)</span>
+<span class="go">[[2283]]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="armageddon.PostcodeLocator.get_postcodes_by_radius">
+<code class="sig-name descname">get_postcodes_by_radius</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">X</span></em>, <em class="sig-param"><span class="n">radii</span></em>, <em class="sig-param"><span class="n">sector</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#armageddon.PostcodeLocator.get_postcodes_by_radius" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return (unit or sector) postcodes within specific distances of
+input location.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> (<em>arraylike</em>) – Latitude-longitude pair of centre location</p></li>
+<li><p><strong>radii</strong> (<em>arraylike</em>) – array of radial distances from X</p></li>
+<li><p><strong>sector</strong> (<em>bool</em><em>, </em><em>optional</em>) – if true return postcode sectors, otherwise postcode units</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Contains the lists of postcodes closer than the elements of radii to the location X.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list of lists</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">locator</span> <span class="o">=</span> <span class="n">PostcodeLocator</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">locator</span><span class="o">.</span><span class="n">get_postcodes_by_radius</span><span class="p">((</span><span class="mf">51.4981</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.1773</span><span class="p">),</span> <span class="p">[</span><span class="mf">0.13e3</span><span class="p">])</span>
+<span class="go">[[&#39;SW7 2AZ&#39;, &#39;SW7 2BT&#39;, &#39;SW7 2BU&#39;, &#39;SW7 2DD&#39;, &#39;SW7 5HF&#39;, &#39;SW7 5HG&#39;, &#39;SW7 5HQ&#39;]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">locator</span><span class="o">.</span><span class="n">get_postcodes_by_radius</span><span class="p">((</span><span class="mf">51.4981</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.1773</span><span class="p">),</span> <span class="p">[</span><span class="mf">0.4e3</span><span class="p">,</span> <span class="mf">0.2e3</span><span class="p">],</span> <span class="kc">True</span><span class="p">)</span>
+<span class="go">[[&#39;SW7 1&#39;, &#39;SW7 4&#39;, &#39;SW7 3&#39;, &#39;SW7 2&#39;, &#39;SW7 9&#39;, &#39;SW7 5&#39;], [&#39;SW7 1&#39;, &#39;SW7 4&#39;, &#39;SW7 3&#39;, &#39;SW7 2&#39;, &#39;SW7 9&#39;, &#39;SW7 5&#39;]]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="armageddon.damage_zones">
+<code class="sig-prename descclassname">armageddon.</code><code class="sig-name descname">damage_zones</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">outcome</span></em>, <em class="sig-param"><span class="n">lat</span></em>, <em class="sig-param"><span class="n">lon</span></em>, <em class="sig-param"><span class="n">bearing</span></em>, <em class="sig-param"><span class="n">pressures</span></em><span class="sig-paren">)</span><a class="headerlink" href="#armageddon.damage_zones" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the latitude and longitude of the surface zero location and the
+list of airblast damage radii (m) for a given impact scenario.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>outcome</strong> (<em>Dict</em>) – the outcome dictionary from an impact scenario</p></li>
+<li><p><strong>lat</strong> (<em>float</em>) – latitude of the meteoroid entry point (degrees)</p></li>
+<li><p><strong>lon</strong> (<em>float</em>) – longitude of the meteoroid entry point (degrees)</p></li>
+<li><p><strong>bearing</strong> (<em>float</em>) – Bearing (azimuth) relative to north of meteoroid trajectory (degrees)</p></li>
+<li><p><strong>pressures</strong> (<em>float</em><em>, </em><em>arraylike</em>) – List of threshold pressures to define airblast damage levels</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>blat</strong> (<em>float</em>) – latitude of the surface zero point (degrees)</p></li>
+<li><p><strong>blon</strong> (<em>float</em>) – longitude of the surface zero point (degrees)</p></li>
+<li><p><strong>damrad</strong> (<em>arraylike, float</em>) – List of distances specifying the blast radii for the input damage levels</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">armageddon</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">outcome</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;burst_altitude&#39;</span><span class="p">:</span> <span class="mf">8e3</span><span class="p">,</span> <span class="s1">&#39;burst_energy&#39;</span><span class="p">:</span> <span class="mf">7e3</span><span class="p">,</span>
+<span class="go">               &#39;burst_distance&#39;: 90e3, &#39;burst_peak_dedz&#39;: 1e3,</span>
+<span class="go">               &#39;outcome&#39;: &#39;Airburst&#39;}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">armageddon</span><span class="o">.</span><span class="n">damage_zones</span><span class="p">(</span><span class="n">outcome</span><span class="p">,</span> <span class="mf">52.79</span><span class="p">,</span> <span class="o">-</span><span class="mf">2.95</span><span class="p">,</span> <span class="mi">135</span><span class="p">,</span> <span class="n">pressures</span><span class="o">=</span><span class="p">[</span><span class="mf">1e3</span><span class="p">,</span> <span class="mf">3.5e3</span><span class="p">,</span> <span class="mf">27e3</span><span class="p">,</span> <span class="mf">43e3</span><span class="p">])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt id="armageddon.great_circle_distance">
+<code class="sig-prename descclassname">armageddon.</code><code class="sig-name descname">great_circle_distance</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">latlon1</span></em>, <em class="sig-param"><span class="n">latlon2</span></em><span class="sig-paren">)</span><a class="headerlink" href="#armageddon.great_circle_distance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the great circle distance (in metres) between pairs of
+points specified as latitude and longitude on a spherical Earth
+(with radius 6371 km).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>latlon1</strong> (<em>arraylike</em>) – latitudes and longitudes of first point (as [n, 2] array for n points)</p></li>
+<li><p><strong>latlon2</strong> (<em>arraylike</em>) – latitudes and longitudes of second point (as [m, 2] array for m points)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Distance in metres between each pair of points (as an n x m array)</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>numpy.ndarray</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fmt</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">format_float_scientific</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">numpy</span><span class="o">.</span><span class="n">printoptions</span><span class="p">(</span><span class="n">formatter</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;all&#39;</span><span class="p">,</span> <span class="n">fmt</span><span class="p">}):</span> <span class="nb">print</span><span class="p">(</span><span class="n">great_circle_distance</span><span class="p">([[</span><span class="mf">54.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">],</span> <span class="p">[</span><span class="mi">55</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">]],</span> <span class="p">[</span><span class="mi">55</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">]))</span>
+<span class="go">&#39;[1.286e+05 6.378e+04]&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt id="armageddon.impact_risk">
+<code class="sig-prename descclassname">armageddon.</code><code class="sig-name descname">impact_risk</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">planet</span></em>, <em class="sig-param"><span class="n">means</span><span class="o">=</span><span class="default_value">{'angle': 20, 'bearing': - 45.0, 'density': 3000, 'lat': 51.5, 'lon': 1.5, 'radius': 10, 'strength': 1000000.0, 'velocity': 19000.0}</span></em>, <em class="sig-param"><span class="n">stdevs</span><span class="o">=</span><span class="default_value">{'angle': 1, 'bearing': 0.5, 'density': 500, 'lat': 0.025, 'lon': 0.025, 'radius': 1, 'strength': 500000.0, 'velocity': 1000.0}</span></em>, <em class="sig-param"><span class="n">pressure</span><span class="o">=</span><span class="default_value">27000.0</span></em>, <em class="sig-param"><span class="n">nsamples</span><span class="o">=</span><span class="default_value">100</span></em>, <em class="sig-param"><span class="n">sector</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#armageddon.impact_risk" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform an uncertainty analysis to calculate the risk for each affected
+UK postcode or postcode sector</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>planet</strong> (<em>armageddon.Planet instance</em>) – The Planet instance from which to solve the atmospheric entry</p></li>
+<li><p><strong>means</strong> (<em>dict</em>) – A dictionary of mean input values for the uncertainty analysis. This
+should include values for <code class="docutils literal notranslate"><span class="pre">radius</span></code>, <code class="docutils literal notranslate"><span class="pre">angle</span></code>, <code class="docutils literal notranslate"><span class="pre">strength</span></code>,
+<code class="docutils literal notranslate"><span class="pre">density</span></code>, <code class="docutils literal notranslate"><span class="pre">velocity</span></code>, <code class="docutils literal notranslate"><span class="pre">lat</span></code>, <code class="docutils literal notranslate"><span class="pre">lon</span></code> and <code class="docutils literal notranslate"><span class="pre">bearing</span></code></p></li>
+<li><p><strong>stdevs</strong> (<em>dict</em>) – A dictionary of standard deviations for each input value. This
+should include values for <code class="docutils literal notranslate"><span class="pre">radius</span></code>, <code class="docutils literal notranslate"><span class="pre">angle</span></code>, <code class="docutils literal notranslate"><span class="pre">strength</span></code>,
+<code class="docutils literal notranslate"><span class="pre">density</span></code>, <code class="docutils literal notranslate"><span class="pre">velocity</span></code>, <code class="docutils literal notranslate"><span class="pre">lat</span></code>, <code class="docutils literal notranslate"><span class="pre">lon</span></code> and <code class="docutils literal notranslate"><span class="pre">bearing</span></code></p></li>
+<li><p><strong>pressure</strong> (<em>float</em>) – The pressure at which to calculate the damage zone for each impact</p></li>
+<li><p><strong>nsamples</strong> (<em>int</em>) – The number of iterations to perform in the uncertainty analysis</p></li>
+<li><p><strong>sector</strong> (<em>logical</em><em>, </em><em>optional</em>) – If True (default) calculate the risk for postcode sectors, otherwise
+calculate the risk for postcodes</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>risk</strong> – A pandas DataFrame with columns for postcode (or postcode sector) and
+the associated risk. These should be called <code class="docutils literal notranslate"><span class="pre">postcode</span></code> or <code class="docutils literal notranslate"><span class="pre">sector</span></code>,
+and <code class="docutils literal notranslate"><span class="pre">risk</span></code>.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="armageddon.minimize">
+<code class="sig-prename descclassname">armageddon.</code><code class="sig-name descname">minimize</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fun</span></em>, <em class="sig-param"><span class="n">x0</span></em>, <em class="sig-param"><span class="n">args</span><span class="o">=</span><span class="default_value">()</span></em>, <em class="sig-param"><span class="n">method</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">jac</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">hess</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">hessp</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">bounds</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">constraints</span><span class="o">=</span><span class="default_value">()</span></em>, <em class="sig-param"><span class="n">tol</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">callback</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">options</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#armageddon.minimize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Minimization of scalar function of one or more variables.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fun</strong> (<em>callable</em>) – <p>The objective function to be minimized.</p>
+<blockquote>
+<div><p><code class="docutils literal notranslate"><span class="pre">fun(x,</span> <span class="pre">*args)</span> <span class="pre">-&gt;</span> <span class="pre">float</span></code></p>
+</div></blockquote>
+<p>where <code class="docutils literal notranslate"><span class="pre">x</span></code> is an 1-D array with shape (n,) and <code class="docutils literal notranslate"><span class="pre">args</span></code>
+is a tuple of the fixed parameters needed to completely
+specify the function.</p>
+</p></li>
+<li><p><strong>x0</strong> (<em>ndarray</em><em>, </em><em>shape</em><em> (</em><em>n</em><em>,</em><em>)</em>) – Initial guess. Array of real elements of size (n,),
+where ‘n’ is the number of independent variables.</p></li>
+<li><p><strong>args</strong> (<em>tuple</em><em>, </em><em>optional</em>) – Extra arguments passed to the objective function and its
+derivatives (<cite>fun</cite>, <cite>jac</cite> and <cite>hess</cite> functions).</p></li>
+<li><p><strong>method</strong> (<em>str</em><em> or </em><em>callable</em><em>, </em><em>optional</em>) – <p>Type of solver.  Should be one of</p>
+<blockquote>
+<div><ul>
+<li><p>’Nelder-Mead’ <span class="xref std std-ref">(see here)</span></p></li>
+<li><p>’Powell’      <span class="xref std std-ref">(see here)</span></p></li>
+<li><p>’CG’          <span class="xref std std-ref">(see here)</span></p></li>
+<li><p>’BFGS’        <span class="xref std std-ref">(see here)</span></p></li>
+<li><p>’Newton-CG’   <span class="xref std std-ref">(see here)</span></p></li>
+<li><p>’L-BFGS-B’    <span class="xref std std-ref">(see here)</span></p></li>
+<li><p>’TNC’         <span class="xref std std-ref">(see here)</span></p></li>
+<li><p>’COBYLA’      <span class="xref std std-ref">(see here)</span></p></li>
+<li><p>’SLSQP’       <span class="xref std std-ref">(see here)</span></p></li>
+<li><p>’trust-constr’<span class="xref std std-ref">(see here)</span></p></li>
+<li><p>’dogleg’      <span class="xref std std-ref">(see here)</span></p></li>
+<li><p>’trust-ncg’   <span class="xref std std-ref">(see here)</span></p></li>
+<li><p>’trust-exact’ <span class="xref std std-ref">(see here)</span></p></li>
+<li><p>’trust-krylov’ <span class="xref std std-ref">(see here)</span></p></li>
+<li><p>custom - a callable object (added in version 0.14.0),
+see below for description.</p></li>
+</ul>
+</div></blockquote>
+<p>If not given, chosen to be one of <code class="docutils literal notranslate"><span class="pre">BFGS</span></code>, <code class="docutils literal notranslate"><span class="pre">L-BFGS-B</span></code>, <code class="docutils literal notranslate"><span class="pre">SLSQP</span></code>,
+depending if the problem has constraints or bounds.</p>
+</p></li>
+<li><p><strong>jac</strong> (<em>{callable</em><em>,  </em><em>'2-point'</em><em>, </em><em>'3-point'</em><em>, </em><em>'cs'</em><em>, </em><em>bool}</em><em>, </em><em>optional</em>) – <p>Method for computing the gradient vector. Only for CG, BFGS,
+Newton-CG, L-BFGS-B, TNC, SLSQP, dogleg, trust-ncg, trust-krylov,
+trust-exact and trust-constr.
+If it is a callable, it should be a function that returns the gradient
+vector:</p>
+<blockquote>
+<div><p><code class="docutils literal notranslate"><span class="pre">jac(x,</span> <span class="pre">*args)</span> <span class="pre">-&gt;</span> <span class="pre">array_like,</span> <span class="pre">shape</span> <span class="pre">(n,)</span></code></p>
+</div></blockquote>
+<p>where <code class="docutils literal notranslate"><span class="pre">x</span></code> is an array with shape (n,) and <code class="docutils literal notranslate"><span class="pre">args</span></code> is a tuple with
+the fixed parameters. If <cite>jac</cite> is a Boolean and is True, <cite>fun</cite> is
+assumed to return and objective and gradient as an <code class="docutils literal notranslate"><span class="pre">(f,</span> <span class="pre">g)</span></code> tuple.
+Methods ‘Newton-CG’, ‘trust-ncg’, ‘dogleg’, ‘trust-exact’, and
+‘trust-krylov’ require that either a callable be supplied, or that
+<cite>fun</cite> return the objective and gradient.
+If None or False, the gradient will be estimated using 2-point finite
+difference estimation with an absolute step size.
+Alternatively, the keywords  {‘2-point’, ‘3-point’, ‘cs’} can be used
+to select a finite difference scheme for numerical estimation of the
+gradient with a relative step size. These finite difference schemes
+obey any specified <cite>bounds</cite>.</p>
+</p></li>
+<li><p><strong>hess</strong> (<em>{callable</em><em>, </em><em>'2-point'</em><em>, </em><em>'3-point'</em><em>, </em><em>'cs'</em><em>, </em><em>HessianUpdateStrategy}</em><em>, </em><em>optional</em>) – <p>Method for computing the Hessian matrix. Only for Newton-CG, dogleg,
+trust-ncg,  trust-krylov, trust-exact and trust-constr. If it is
+callable, it should return the  Hessian matrix:</p>
+<blockquote>
+<div><p><code class="docutils literal notranslate"><span class="pre">hess(x,</span> <span class="pre">*args)</span> <span class="pre">-&gt;</span> <span class="pre">{LinearOperator,</span> <span class="pre">spmatrix,</span> <span class="pre">array},</span> <span class="pre">(n,</span> <span class="pre">n)</span></code></p>
+</div></blockquote>
+<p>where x is a (n,) ndarray and <cite>args</cite> is a tuple with the fixed
+parameters. LinearOperator and sparse matrix returns are
+allowed only for ‘trust-constr’ method. Alternatively, the keywords
+{‘2-point’, ‘3-point’, ‘cs’} select a finite difference scheme
+for numerical estimation. Or, objects implementing
+<cite>HessianUpdateStrategy</cite> interface can be used to approximate
+the Hessian. Available quasi-Newton methods implementing
+this interface are:</p>
+<blockquote>
+<div><ul>
+<li><p><cite>BFGS</cite>;</p></li>
+<li><p><cite>SR1</cite>.</p></li>
+</ul>
+</div></blockquote>
+<p>Whenever the gradient is estimated via finite-differences,
+the Hessian cannot be estimated with options
+{‘2-point’, ‘3-point’, ‘cs’} and needs to be
+estimated using one of the quasi-Newton strategies.
+Finite-difference options {‘2-point’, ‘3-point’, ‘cs’} and
+<cite>HessianUpdateStrategy</cite> are available only for ‘trust-constr’ method.</p>
+</p></li>
+<li><p><strong>hessp</strong> (<em>callable</em><em>, </em><em>optional</em>) – <p>Hessian of objective function times an arbitrary vector p. Only for
+Newton-CG, trust-ncg, trust-krylov, trust-constr.
+Only one of <cite>hessp</cite> or <cite>hess</cite> needs to be given.  If <cite>hess</cite> is
+provided, then <cite>hessp</cite> will be ignored.  <cite>hessp</cite> must compute the
+Hessian times an arbitrary vector:</p>
+<blockquote>
+<div><p><code class="docutils literal notranslate"><span class="pre">hessp(x,</span> <span class="pre">p,</span> <span class="pre">*args)</span> <span class="pre">-&gt;</span>&#160; <span class="pre">ndarray</span> <span class="pre">shape</span> <span class="pre">(n,)</span></code></p>
+</div></blockquote>
+<p>where x is a (n,) ndarray, p is an arbitrary vector with
+dimension (n,) and <cite>args</cite> is a tuple with the fixed
+parameters.</p>
+</p></li>
+<li><p><strong>bounds</strong> (sequence or <cite>Bounds</cite>, optional) – <p>Bounds on variables for L-BFGS-B, TNC, SLSQP, Powell, and
+trust-constr methods. There are two ways to specify the bounds:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><p>Instance of <cite>Bounds</cite> class.</p></li>
+<li><p>Sequence of <code class="docutils literal notranslate"><span class="pre">(min,</span> <span class="pre">max)</span></code> pairs for each element in <cite>x</cite>. None
+is used to specify no bound.</p></li>
+</ol>
+</div></blockquote>
+</p></li>
+<li><p><strong>constraints</strong> (<em>{Constraint</em><em>, </em><em>dict}</em><em> or </em><em>List of {Constraint</em><em>, </em><em>dict}</em><em>, </em><em>optional</em>) – <p>Constraints definition (only for COBYLA, SLSQP and trust-constr).</p>
+<p>Constraints for ‘trust-constr’ are defined as a single object or a
+list of objects specifying constraints to the optimization problem.
+Available constraints are:</p>
+<blockquote>
+<div><ul>
+<li><p><cite>LinearConstraint</cite></p></li>
+<li><p><cite>NonlinearConstraint</cite></p></li>
+</ul>
+</div></blockquote>
+<p>Constraints for COBYLA, SLSQP are defined as a list of dictionaries.
+Each dictionary with fields:</p>
+<blockquote>
+<div><dl class="simple">
+<dt>type<span class="classifier">str</span></dt><dd><p>Constraint type: ‘eq’ for equality, ‘ineq’ for inequality.</p>
+</dd>
+<dt>fun<span class="classifier">callable</span></dt><dd><p>The function defining the constraint.</p>
+</dd>
+<dt>jac<span class="classifier">callable, optional</span></dt><dd><p>The Jacobian of <cite>fun</cite> (only for SLSQP).</p>
+</dd>
+<dt>args<span class="classifier">sequence, optional</span></dt><dd><p>Extra arguments to be passed to the function and Jacobian.</p>
+</dd>
+</dl>
+</div></blockquote>
+<p>Equality constraint means that the constraint function result is to
+be zero whereas inequality means that it is to be non-negative.
+Note that COBYLA only supports inequality constraints.</p>
+</p></li>
+<li><p><strong>tol</strong> (<em>float</em><em>, </em><em>optional</em>) – Tolerance for termination. For detailed control, use solver-specific
+options.</p></li>
+<li><p><strong>options</strong> (<em>dict</em><em>, </em><em>optional</em>) – <p>A dictionary of solver options. All methods accept the following
+generic options:</p>
+<blockquote>
+<div><dl class="simple">
+<dt>maxiter<span class="classifier">int</span></dt><dd><p>Maximum number of iterations to perform. Depending on the
+method each iteration may use several function evaluations.</p>
+</dd>
+<dt>disp<span class="classifier">bool</span></dt><dd><p>Set to True to print convergence messages.</p>
+</dd>
+</dl>
+</div></blockquote>
+<p>For method-specific options, see <code class="xref py py-func docutils literal notranslate"><span class="pre">show_options()</span></code>.</p>
+</p></li>
+<li><p><strong>callback</strong> (<em>callable</em><em>, </em><em>optional</em>) – <p>Called after each iteration. For ‘trust-constr’ it is a callable with
+the signature:</p>
+<blockquote>
+<div><p><code class="docutils literal notranslate"><span class="pre">callback(xk,</span> <span class="pre">OptimizeResult</span> <span class="pre">state)</span> <span class="pre">-&gt;</span> <span class="pre">bool</span></code></p>
+</div></blockquote>
+<p>where <code class="docutils literal notranslate"><span class="pre">xk</span></code> is the current parameter vector. and <code class="docutils literal notranslate"><span class="pre">state</span></code>
+is an <cite>OptimizeResult</cite> object, with the same fields
+as the ones from the return. If callback returns True
+the algorithm execution is terminated.
+For all the other methods, the signature is:</p>
+<blockquote>
+<div><p><code class="docutils literal notranslate"><span class="pre">callback(xk)</span></code></p>
+</div></blockquote>
+<p>where <code class="docutils literal notranslate"><span class="pre">xk</span></code> is the current parameter vector.</p>
+</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>res</strong> – The optimization result represented as a <code class="docutils literal notranslate"><span class="pre">OptimizeResult</span></code> object.
+Important attributes are: <code class="docutils literal notranslate"><span class="pre">x</span></code> the solution array, <code class="docutils literal notranslate"><span class="pre">success</span></code> a
+Boolean flag indicating if the optimizer exited successfully and
+<code class="docutils literal notranslate"><span class="pre">message</span></code> which describes the cause of the termination. See
+<cite>OptimizeResult</cite> for a description of other attributes.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>OptimizeResult</p>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><code class="xref py py-func docutils literal notranslate"><span class="pre">minimize_scalar()</span></code></dt><dd><p>Interface to minimization algorithms for scalar univariate functions</p>
+</dd>
+<dt><code class="xref py py-func docutils literal notranslate"><span class="pre">show_options()</span></code></dt><dd><p>Additional options accepted by the solvers</p>
+</dd>
+</dl>
+</div>
+<p class="rubric">Notes</p>
+<p>This section describes the available solvers that can be selected by the
+‘method’ parameter. The default method is <em>BFGS</em>.</p>
+<p><strong>Unconstrained minimization</strong></p>
+<p>Method <span class="xref std std-ref">Nelder-Mead</span> uses the
+Simplex algorithm <a class="footnote-reference brackets" href="#id24" id="id1">1</a>, <a class="footnote-reference brackets" href="#id25" id="id2">2</a>. This algorithm is robust in many
+applications. However, if numerical computation of derivative can be
+trusted, other algorithms using the first and/or second derivatives
+information might be preferred for their better performance in
+general.</p>
+<p>Method <span class="xref std std-ref">CG</span> uses a nonlinear conjugate
+gradient algorithm by Polak and Ribiere, a variant of the
+Fletcher-Reeves method described in <a class="footnote-reference brackets" href="#id28" id="id3">5</a> pp.120-122. Only the
+first derivatives are used.</p>
+<p>Method <span class="xref std std-ref">BFGS</span> uses the quasi-Newton
+method of Broyden, Fletcher, Goldfarb, and Shanno (BFGS) <a class="footnote-reference brackets" href="#id28" id="id4">5</a>
+pp. 136. It uses the first derivatives only. BFGS has proven good
+performance even for non-smooth optimizations. This method also
+returns an approximation of the Hessian inverse, stored as
+<cite>hess_inv</cite> in the OptimizeResult object.</p>
+<p>Method <span class="xref std std-ref">Newton-CG</span> uses a
+Newton-CG algorithm <a class="footnote-reference brackets" href="#id28" id="id5">5</a> pp. 168 (also known as the truncated
+Newton method). It uses a CG method to the compute the search
+direction. See also <em>TNC</em> method for a box-constrained
+minimization with a similar algorithm. Suitable for large-scale
+problems.</p>
+<p>Method <span class="xref std std-ref">dogleg</span> uses the dog-leg
+trust-region algorithm <a class="footnote-reference brackets" href="#id28" id="id6">5</a> for unconstrained minimization. This
+algorithm requires the gradient and Hessian; furthermore the
+Hessian is required to be positive definite.</p>
+<p>Method <span class="xref std std-ref">trust-ncg</span> uses the
+Newton conjugate gradient trust-region algorithm <a class="footnote-reference brackets" href="#id28" id="id7">5</a> for
+unconstrained minimization. This algorithm requires the gradient
+and either the Hessian or a function that computes the product of
+the Hessian with a given vector. Suitable for large-scale problems.</p>
+<p>Method <span class="xref std std-ref">trust-krylov</span> uses
+the Newton GLTR trust-region algorithm <a class="footnote-reference brackets" href="#id37" id="id8">14</a>, <a class="footnote-reference brackets" href="#id40" id="id9">15</a> for unconstrained
+minimization. This algorithm requires the gradient
+and either the Hessian or a function that computes the product of
+the Hessian with a given vector. Suitable for large-scale problems.
+On indefinite problems it requires usually less iterations than the
+<cite>trust-ncg</cite> method and is recommended for medium and large-scale problems.</p>
+<p>Method <span class="xref std std-ref">trust-exact</span>
+is a trust-region method for unconstrained minimization in which
+quadratic subproblems are solved almost exactly <a class="footnote-reference brackets" href="#id36" id="id10">13</a>. This
+algorithm requires the gradient and the Hessian (which is
+<em>not</em> required to be positive definite). It is, in many
+situations, the Newton method to converge in fewer iteraction
+and the most recommended for small and medium-size problems.</p>
+<p><strong>Bound-Constrained minimization</strong></p>
+<p>Method <span class="xref std std-ref">L-BFGS-B</span> uses the L-BFGS-B
+algorithm <a class="footnote-reference brackets" href="#id29" id="id11">6</a>, <a class="footnote-reference brackets" href="#id30" id="id12">7</a> for bound constrained minimization.</p>
+<p>Method <span class="xref std std-ref">Powell</span> is a modification
+of Powell’s method <a class="footnote-reference brackets" href="#id26" id="id13">3</a>, <a class="footnote-reference brackets" href="#id27" id="id14">4</a> which is a conjugate direction
+method. It performs sequential one-dimensional minimizations along
+each vector of the directions set (<cite>direc</cite> field in <cite>options</cite> and
+<cite>info</cite>), which is updated at each iteration of the main
+minimization loop. The function need not be differentiable, and no
+derivatives are taken. If bounds are not provided, then an
+unbounded line search will be used. If bounds are provided and
+the initial guess is within the bounds, then every function
+evaluation throughout the minimization procedure will be within
+the bounds. If bounds are provided, the initial guess is outside
+the bounds, and <cite>direc</cite> is full rank (default has full rank), then
+some function evaluations during the first iteration may be
+outside the bounds, but every function evaluation after the first
+iteration will be within the bounds. If <cite>direc</cite> is not full rank,
+then some parameters may not be optimized and the solution is not
+guaranteed to be within the bounds.</p>
+<p>Method <span class="xref std std-ref">TNC</span> uses a truncated Newton
+algorithm <a class="footnote-reference brackets" href="#id28" id="id15">5</a>, <a class="footnote-reference brackets" href="#id31" id="id16">8</a> to minimize a function with variables subject
+to bounds. This algorithm uses gradient information; it is also
+called Newton Conjugate-Gradient. It differs from the <em>Newton-CG</em>
+method described above as it wraps a C implementation and allows
+each variable to be given upper and lower bounds.</p>
+<p><strong>Constrained Minimization</strong></p>
+<p>Method <span class="xref std std-ref">COBYLA</span> uses the
+Constrained Optimization BY Linear Approximation (COBYLA) method
+<a class="footnote-reference brackets" href="#id32" id="id17">9</a>, <a class="footnote-reference brackets" href="#id33" id="id18">10</a>, <a class="footnote-reference brackets" href="#id34" id="id19">11</a>. The algorithm is based on linear
+approximations to the objective function and each constraint. The
+method wraps a FORTRAN implementation of the algorithm. The
+constraints functions ‘fun’ may return either a single number
+or an array or list of numbers.</p>
+<p>Method <span class="xref std std-ref">SLSQP</span> uses Sequential
+Least SQuares Programming to minimize a function of several
+variables with any combination of bounds, equality and inequality
+constraints. The method wraps the SLSQP Optimization subroutine
+originally implemented by Dieter Kraft <a class="footnote-reference brackets" href="#id35" id="id20">12</a>. Note that the
+wrapper handles infinite values in bounds by converting them into
+large floating values.</p>
+<p>Method <span class="xref std std-ref">trust-constr</span> is a
+trust-region algorithm for constrained optimization. It swiches
+between two implementations depending on the problem definition.
+It is the most versatile constrained minimization algorithm
+implemented in SciPy and the most appropriate for large-scale problems.
+For equality constrained problems it is an implementation of Byrd-Omojokun
+Trust-Region SQP method described in <a class="footnote-reference brackets" href="#id42" id="id21">17</a> and in <a class="footnote-reference brackets" href="#id28" id="id22">5</a>, p. 549. When
+inequality constraints  are imposed as well, it swiches to the trust-region
+interior point  method described in <a class="footnote-reference brackets" href="#id41" id="id23">16</a>. This interior point algorithm,
+in turn, solves inequality constraints by introducing slack variables
+and solving a sequence of equality-constrained barrier problems
+for progressively smaller values of the barrier parameter.
+The previously described equality constrained SQP method is
+used to solve the subproblems with increasing levels of accuracy
+as the iterate gets closer to a solution.</p>
+<p><strong>Finite-Difference Options</strong></p>
+<p>For Method <span class="xref std std-ref">trust-constr</span>
+the gradient and the Hessian may be approximated using
+three finite-difference schemes: {‘2-point’, ‘3-point’, ‘cs’}.
+The scheme ‘cs’ is, potentially, the most accurate but it
+requires the function to correctly handles complex inputs and to
+be differentiable in the complex plane. The scheme ‘3-point’ is more
+accurate than ‘2-point’ but requires twice as many operations.</p>
+<p><strong>Custom minimizers</strong></p>
+<p>It may be useful to pass a custom minimization method, for example
+when using a frontend to this method such as <cite>scipy.optimize.basinhopping</cite>
+or a different library.  You can simply pass a callable as the <code class="docutils literal notranslate"><span class="pre">method</span></code>
+parameter.</p>
+<p>The callable is called as <code class="docutils literal notranslate"><span class="pre">method(fun,</span> <span class="pre">x0,</span> <span class="pre">args,</span> <span class="pre">**kwargs,</span> <span class="pre">**options)</span></code>
+where <code class="docutils literal notranslate"><span class="pre">kwargs</span></code> corresponds to any other parameters passed to <cite>minimize</cite>
+(such as <cite>callback</cite>, <cite>hess</cite>, etc.), except the <cite>options</cite> dict, which has
+its contents also passed as <cite>method</cite> parameters pair by pair.  Also, if
+<cite>jac</cite> has been passed as a bool type, <cite>jac</cite> and <cite>fun</cite> are mangled so that
+<cite>fun</cite> returns just the function values and <cite>jac</cite> is converted to a function
+returning the Jacobian.  The method shall return an <cite>OptimizeResult</cite>
+object.</p>
+<p>The provided <cite>method</cite> callable must be able to accept (and possibly ignore)
+arbitrary parameters; the set of parameters accepted by <cite>minimize</cite> may
+expand in future versions and then these parameters will be passed to
+the method.  You can find an example in the scipy.optimize tutorial.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 0.11.0.</span></p>
+</div>
+<p class="rubric">References</p>
+<dl class="footnote brackets">
+<dt class="label" id="id24"><span class="brackets"><a class="fn-backref" href="#id1">1</a></span></dt>
+<dd><p>Nelder, J A, and R Mead. 1965. A Simplex Method for Function
+Minimization. The Computer Journal 7: 308-13.</p>
+</dd>
+<dt class="label" id="id25"><span class="brackets"><a class="fn-backref" href="#id2">2</a></span></dt>
+<dd><p>Wright M H. 1996. Direct search methods: Once scorned, now
+respectable, in Numerical Analysis 1995: Proceedings of the 1995
+Dundee Biennial Conference in Numerical Analysis (Eds. D F
+Griffiths and G A Watson). Addison Wesley Longman, Harlow, UK.
+191-208.</p>
+</dd>
+<dt class="label" id="id26"><span class="brackets"><a class="fn-backref" href="#id13">3</a></span></dt>
+<dd><p>Powell, M J D. 1964. An efficient method for finding the minimum of
+a function of several variables without calculating derivatives. The
+Computer Journal 7: 155-162.</p>
+</dd>
+<dt class="label" id="id27"><span class="brackets"><a class="fn-backref" href="#id14">4</a></span></dt>
+<dd><p>Press W, S A Teukolsky, W T Vetterling and B P Flannery.
+Numerical Recipes (any edition), Cambridge University Press.</p>
+</dd>
+<dt class="label" id="id28"><span class="brackets">5</span><span class="fn-backref">(<a href="#id3">1</a>,<a href="#id4">2</a>,<a href="#id5">3</a>,<a href="#id6">4</a>,<a href="#id7">5</a>,<a href="#id15">6</a>,<a href="#id22">7</a>,<a href="#id43">8</a>)</span></dt>
+<dd><p>Nocedal, J, and S J Wright. 2006. Numerical Optimization.
+Springer New York.</p>
+</dd>
+<dt class="label" id="id29"><span class="brackets"><a class="fn-backref" href="#id11">6</a></span></dt>
+<dd><p>Byrd, R H and P Lu and J. Nocedal. 1995. A Limited Memory
+Algorithm for Bound Constrained Optimization. SIAM Journal on
+Scientific and Statistical Computing 16 (5): 1190-1208.</p>
+</dd>
+<dt class="label" id="id30"><span class="brackets"><a class="fn-backref" href="#id12">7</a></span></dt>
+<dd><p>Zhu, C and R H Byrd and J Nocedal. 1997. L-BFGS-B: Algorithm
+778: L-BFGS-B, FORTRAN routines for large scale bound constrained
+optimization. ACM Transactions on Mathematical Software 23 (4):
+550-560.</p>
+</dd>
+<dt class="label" id="id31"><span class="brackets"><a class="fn-backref" href="#id16">8</a></span></dt>
+<dd><p>Nash, S G. Newton-Type Minimization Via the Lanczos Method.
+1984. SIAM Journal of Numerical Analysis 21: 770-778.</p>
+</dd>
+<dt class="label" id="id32"><span class="brackets"><a class="fn-backref" href="#id17">9</a></span></dt>
+<dd><p>Powell, M J D. A direct search optimization method that models
+the objective and constraint functions by linear interpolation.
+1994. Advances in Optimization and Numerical Analysis, eds. S. Gomez
+and J-P Hennart, Kluwer Academic (Dordrecht), 51-67.</p>
+</dd>
+<dt class="label" id="id33"><span class="brackets"><a class="fn-backref" href="#id18">10</a></span></dt>
+<dd><p>Powell M J D. Direct search algorithms for optimization
+calculations. 1998. Acta Numerica 7: 287-336.</p>
+</dd>
+<dt class="label" id="id34"><span class="brackets"><a class="fn-backref" href="#id19">11</a></span></dt>
+<dd><p>Powell M J D. A view of algorithms for optimization without
+derivatives. 2007.Cambridge University Technical Report DAMTP
+2007/NA03</p>
+</dd>
+<dt class="label" id="id35"><span class="brackets"><a class="fn-backref" href="#id20">12</a></span></dt>
+<dd><p>Kraft, D. A software package for sequential quadratic
+programming. 1988. Tech. Rep. DFVLR-FB 88-28, DLR German Aerospace
+Center – Institute for Flight Mechanics, Koln, Germany.</p>
+</dd>
+<dt class="label" id="id36"><span class="brackets"><a class="fn-backref" href="#id10">13</a></span></dt>
+<dd><p>Conn, A. R., Gould, N. I., and Toint, P. L.
+Trust region methods. 2000. Siam. pp. 169-200.</p>
+</dd>
+<dt class="label" id="id37"><span class="brackets"><a class="fn-backref" href="#id8">14</a></span></dt>
+<dd><p>F. Lenders, C. Kirches, A. Potschka: “trlib: A vector-free
+implementation of the GLTR method for iterative solution of
+the trust region problem”, <a href="#id38"><span class="problematic" id="id39">:arxiv:`1611.04718`</span></a></p>
+</dd>
+<dt class="label" id="id40"><span class="brackets"><a class="fn-backref" href="#id9">15</a></span></dt>
+<dd><p>N. Gould, S. Lucidi, M. Roma, P. Toint: “Solving the
+Trust-Region Subproblem using the Lanczos Method”,
+SIAM J. Optim., 9(2), 504–525, (1999).</p>
+</dd>
+<dt class="label" id="id41"><span class="brackets"><a class="fn-backref" href="#id23">16</a></span></dt>
+<dd><p>Byrd, Richard H., Mary E. Hribar, and Jorge Nocedal. 1999.
+An interior point algorithm for large-scale nonlinear  programming.
+SIAM Journal on Optimization 9.4: 877-900.</p>
+</dd>
+<dt class="label" id="id42"><span class="brackets"><a class="fn-backref" href="#id21">17</a></span></dt>
+<dd><p>Lalee, Marucha, Jorge Nocedal, and Todd Plantega. 1998. On the
+implementation of an algorithm for large-scale equality constrained
+optimization. SIAM Journal on Optimization 8.3: 682-706.</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<p>Let us consider the problem of minimizing the Rosenbrock function. This
+function (and its respective derivatives) is implemented in <cite>rosen</cite>
+(resp. <cite>rosen_der</cite>, <cite>rosen_hess</cite>) in the <cite>scipy.optimize</cite>.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="kn">import</span> <span class="n">minimize</span><span class="p">,</span> <span class="n">rosen</span><span class="p">,</span> <span class="n">rosen_der</span>
+</pre></div>
+</div>
+<p>A simple application of the <em>Nelder-Mead</em> method is:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">x0</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1.3</span><span class="p">,</span> <span class="mf">0.7</span><span class="p">,</span> <span class="mf">0.8</span><span class="p">,</span> <span class="mf">1.9</span><span class="p">,</span> <span class="mf">1.2</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">res</span> <span class="o">=</span> <span class="n">minimize</span><span class="p">(</span><span class="n">rosen</span><span class="p">,</span> <span class="n">x0</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;Nelder-Mead&#39;</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">res</span><span class="o">.</span><span class="n">x</span>
+<span class="go">array([ 1.,  1.,  1.,  1.,  1.])</span>
+</pre></div>
+</div>
+<p>Now using the <em>BFGS</em> algorithm, using the first derivative and a few
+options:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">res</span> <span class="o">=</span> <span class="n">minimize</span><span class="p">(</span><span class="n">rosen</span><span class="p">,</span> <span class="n">x0</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;BFGS&#39;</span><span class="p">,</span> <span class="n">jac</span><span class="o">=</span><span class="n">rosen_der</span><span class="p">,</span>
+<span class="gp">... </span>               <span class="n">options</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;gtol&#39;</span><span class="p">:</span> <span class="mf">1e-6</span><span class="p">,</span> <span class="s1">&#39;disp&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">})</span>
+<span class="go">Optimization terminated successfully.</span>
+<span class="go">         Current function value: 0.000000</span>
+<span class="go">         Iterations: 26</span>
+<span class="go">         Function evaluations: 31</span>
+<span class="go">         Gradient evaluations: 31</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">res</span><span class="o">.</span><span class="n">x</span>
+<span class="go">array([ 1.,  1.,  1.,  1.,  1.])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">message</span><span class="p">)</span>
+<span class="go">Optimization terminated successfully.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">res</span><span class="o">.</span><span class="n">hess_inv</span>
+<span class="go">array([[ 0.00749589,  0.01255155,  0.02396251,  0.04750988,  0.09495377],  # may vary</span>
+<span class="go">       [ 0.01255155,  0.02510441,  0.04794055,  0.09502834,  0.18996269],</span>
+<span class="go">       [ 0.02396251,  0.04794055,  0.09631614,  0.19092151,  0.38165151],</span>
+<span class="go">       [ 0.04750988,  0.09502834,  0.19092151,  0.38341252,  0.7664427 ],</span>
+<span class="go">       [ 0.09495377,  0.18996269,  0.38165151,  0.7664427,   1.53713523]])</span>
+</pre></div>
+</div>
+<p>Next, consider a minimization problem with several constraints (namely
+Example 16.4 from <a class="footnote-reference brackets" href="#id28" id="id43">5</a>). The objective function is:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">fun</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mf">2.5</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
+</pre></div>
+</div>
+<p>There are three constraints defined as:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">cons</span> <span class="o">=</span> <span class="p">({</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;ineq&#39;</span><span class="p">,</span> <span class="s1">&#39;fun&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span>  <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mi">2</span><span class="p">},</span>
+<span class="gp">... </span>        <span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;ineq&#39;</span><span class="p">,</span> <span class="s1">&#39;fun&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="o">-</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mi">6</span><span class="p">},</span>
+<span class="gp">... </span>        <span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;ineq&#39;</span><span class="p">,</span> <span class="s1">&#39;fun&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="o">-</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mi">2</span><span class="p">})</span>
+</pre></div>
+</div>
+<p>And variables must be positive, hence the following bounds:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">bnds</span> <span class="o">=</span> <span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>The optimization problem is solved using the SLSQP method as:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">res</span> <span class="o">=</span> <span class="n">minimize</span><span class="p">(</span><span class="n">fun</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;SLSQP&#39;</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="n">bnds</span><span class="p">,</span>
+<span class="gp">... </span>               <span class="n">constraints</span><span class="o">=</span><span class="n">cons</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>It should converge to the theoretical solution (1.4 ,1.7).</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="armageddon.plot_circle">
+<code class="sig-prename descclassname">armageddon.</code><code class="sig-name descname">plot_circle</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">lat</span></em>, <em class="sig-param"><span class="n">lon</span></em>, <em class="sig-param"><span class="n">radius</span></em>, <em class="sig-param"><span class="n">map</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#armageddon.plot_circle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot a circle on a map (creating a new folium map instance if necessary).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>lat</strong> (<em>float</em>) – latitude of circle to plot (degrees)</p></li>
+<li><p><strong>lon</strong> (<em>float</em>) – longitude of circle to plot (degrees)</p></li>
+<li><p><strong>radius</strong> (<em>float</em>) – radius of circle to plot (m)</p></li>
+<li><p><strong>map</strong> (<em>folium.Map</em>) – existing map object</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Folium map object</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<p>#&gt;&gt;&gt; import folium
+#&gt;&gt;&gt; armageddon.plot_circle(52.79, -2.95, 1e3, map=None)</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="armageddon.plot_polyline">
+<code class="sig-prename descclassname">armageddon.</code><code class="sig-name descname">plot_polyline</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">lat</span></em>, <em class="sig-param"><span class="n">lon</span></em>, <em class="sig-param"><span class="n">blat</span></em>, <em class="sig-param"><span class="n">blon</span></em>, <em class="sig-param"><span class="n">map</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#armageddon.plot_polyline" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot a line between the meteoroid entry point and the surface zero location
+on a map (creating a new folium map instance if necessary).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>blat</strong> (<em>float</em>) – latitude of the surface zero point (degrees)</p></li>
+<li><p><strong>blon</strong> (<em>float</em>) – longitude of the surface zero point (degrees)</p></li>
+<li><p><strong>lat</strong> (<em>float</em>) – latitude of the meteoroid entry point (degrees)</p></li>
+<li><p><strong>lon</strong> (<em>float</em>) – longitude of the meteoroid entry point (degrees)</p></li>
+<li><p><strong>map</strong> (<em>folium.Map</em>) – existing map object</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Folium map object</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="armageddon.randomcolor">
+<code class="sig-prename descclassname">armageddon.</code><code class="sig-name descname">randomcolor</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#armageddon.randomcolor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Randomly select a color for plotting</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>A random color code</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="armageddon.second_order_Newton">
+<code class="sig-prename descclassname">armageddon.</code><code class="sig-name descname">second_order_Newton</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">f</span></em>, <em class="sig-param"><span class="n">dfdx</span></em>, <em class="sig-param"><span class="n">df2dx2</span></em>, <em class="sig-param"><span class="n">initial_guess</span></em>, <em class="sig-param"><span class="n">scaling</span><span class="o">=</span><span class="default_value">1</span></em>, <em class="sig-param"><span class="n">max_iterstep</span><span class="o">=</span><span class="default_value">1000000.0</span></em><span class="sig-paren">)</span><a class="headerlink" href="#armageddon.second_order_Newton" title="Permalink to this definition">¶</a></dt>
+<dd><p>Solving a nolinear equation f(x) = 0 using the 2nd order Newton-Raphson method,
+with iteration function: phi(x) = x + f(x)*[u(x) + f(x)*w(x)],
+we could show by theoretical analysis that u(x) = - f(x)/f’(x) and
+w(x) = - 2f’’(x)/ [f’(x)]^3 enables a cubic convergence for this method.
+but to note choosing the initial guess is tricky for this method.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>f</strong> (<em>function</em>) – the non-linear function we need to solve, (eg. f(x) = 0)</p></li>
+<li><p><strong>dfdx</strong> (<em>function</em>) – the 1st derivative for function f</p></li>
+<li><p><strong>df2dx2</strong> (<em>function</em>) – the 2nd derivative for function f</p></li>
+<li><p><strong>intial_guess</strong> (<em>float</em>) – the start point of the iteration</p></li>
+<li><p><strong>(</strong><strong>Optional</strong><strong>)</strong> (<em>scaling</em>) – a scaling factor to ensure convergence, depending on the specific function we have.
+the point here to make the absolute value of f, dfdx, df2dx2 at the fix point
+C to be small, (eg. <a href="#id44"><span class="problematic" id="id45">|f(C)|</span></a>, <a href="#id46"><span class="problematic" id="id47">|f'(C)|</span></a>, <a href="#id48"><span class="problematic" id="id49">|f''(C|</span></a> is not too big)</p></li>
+<li><p><strong>max_iterstep</strong> (<em>int</em>) – the max iterations that you can accept for this solver, by default it’s 10^6.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>root</strong> – the numerical solution for the Newton method</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="#">Armageddon</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="#">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/index.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
